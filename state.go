@@ -55,8 +55,6 @@ func (f *FileServerContext) ResetState() {
 }
 
 func (f *FileServerContext) Process(b byte) (State, error) {
-	log.Printf("Processing byte %x", b)
-
 	if f.State == WaitHeader {
 		if f.BufferSize < HeaderSize {
 			f.Buffer = append(f.Buffer, b)
