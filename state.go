@@ -57,8 +57,7 @@ func (f *ByfrostServerContext) ResetState() {
 func (f *ByfrostServerContext) Process(b byte) (State, error) {
 	if f.State == WaitHeader {
 		if f.BufferSize < HeaderSize {
-			f.Buffer = append(f.Buffer, b)
-			f.BufferSize++
+			f.appendBuffer(b)
 		}
 
 		if f.BufferSize == HeaderSize {
@@ -81,8 +80,7 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 			f.State = ParsingFileNameSize
 			f.FileNameLength = 0
 			f.FileName = ""
-			f.Buffer = make([]byte, 0)
-			f.BufferSize = 0
+			f.clearBuffer()
 
 			return f.State, nil
 		}
@@ -90,8 +88,7 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 
 	if f.State == ParsingFileNameSize {
 		if f.BufferSize < FileNameSize {
-			f.Buffer = append(f.Buffer, b)
-			f.BufferSize++
+			f.appendBuffer(b)
 		}
 
 		if f.BufferSize == FileNameSize {
@@ -107,8 +104,7 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 			}
 
 			f.State = ParsingFileName
-			f.Buffer = make([]byte, 0)
-			f.BufferSize = 0
+			f.clearBuffer()
 
 			return f.State, nil
 		}
@@ -116,8 +112,7 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 
 	if f.State == ParsingFileName {
 		if f.BufferSize < uint32(f.FileNameLength) {
-			f.Buffer = append(f.Buffer, b)
-			f.BufferSize++
+			f.appendBuffer(b)
 		}
 
 		if f.BufferSize == uint32(f.FileNameLength) {
@@ -126,8 +121,7 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 			log.Println("File name:", f.FileName)
 
 			f.State = ParsingFileContentSize
-			f.Buffer = make([]byte, 0)
-			f.BufferSize = 0
+			f.clearBuffer()
 
 			return ParsingFileContentSize, nil
 		}
@@ -135,20 +129,17 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 
 	if f.State == ParsingFileContentSize {
 		if f.BufferSize < FileContentSize {
-			f.Buffer = append(f.Buffer, b)
-			f.BufferSize++
+			f.appendBuffer(b)
 		}
 
 		if f.BufferSize == FileContentSize {
 			f.FileSize = binary.LittleEndian.Uint32(f.Buffer)
-			f.Buffer = make([]byte, 0)
-			f.BufferSize = 0
+			f.clearBuffer()
 
 			log.Printf("File size: %d", f.FileSize)
 
 			f.State = ParsingContent
-			f.Buffer = make([]byte, 0)
-			f.BufferSize = 0
+			f.clearBuffer()
 
 			return f.State, nil
 		}
@@ -156,22 +147,30 @@ func (f *ByfrostServerContext) Process(b byte) (State, error) {
 
 	if f.State == ParsingContent {
 		if f.BufferSize < uint32(f.FileSize) {
-			f.Buffer = append(f.Buffer, b)
-			f.BufferSize++
+			f.appendBuffer(b)
 		}
 
 		if f.BufferSize == uint32(f.FileSize) {
 			f.FileContent = append(f.FileContent, f.Buffer...)
-			f.Buffer = make([]byte, 0)
-			f.BufferSize = 0
 
 			log.Println("Finish")
 
 			f.State = Finished
+			f.clearBuffer()
 
 			return f.State, nil
 		}
 	}
 
 	return f.State, nil
+}
+
+func (f *ByfrostServerContext) appendBuffer(b byte) {
+	f.Buffer = append(f.Buffer, b)
+	f.BufferSize++
+}
+
+func (f *ByfrostServerContext) clearBuffer() {
+	f.Buffer = make([]byte, 0)
+	f.BufferSize = 0
 }
