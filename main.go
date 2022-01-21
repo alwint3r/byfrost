@@ -56,7 +56,7 @@ func main() {
 func process(conn net.Conn) {
 	defer conn.Close()
 
-	fServer := InitFileServerContext()
+	byfrost := InitByfrostServerContext()
 
 	for {
 		buf := make([]byte, 1)
@@ -68,22 +68,22 @@ func process(conn net.Conn) {
 			return
 		}
 
-		nextState, err := fServer.Process(buf[0])
+		nextState, err := byfrost.Process(buf[0])
 		if err != nil {
 			log.Println(err)
 			return
 		}
 
 		if nextState == Finished {
-			log.Printf("File: %s, Size: %d", fServer.FileName, len(fServer.FileContent))
+			log.Printf("File: %s, Size: %d", byfrost.FileName, len(byfrost.FileContent))
 
-			f, err := os.Create(outputDir + "/" + fServer.FileName)
+			f, err := os.Create(outputDir + "/" + byfrost.FileName)
 			if err != nil {
 				log.Println(err)
 				return
 			}
 
-			written, err := f.Write(fServer.FileContent)
+			written, err := f.Write(byfrost.FileContent)
 			if err != nil {
 				log.Println(err)
 				return
@@ -93,7 +93,7 @@ func process(conn net.Conn) {
 
 			f.Close()
 
-			fServer.ResetState()
+			byfrost.ResetState()
 		}
 	}
 }

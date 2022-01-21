@@ -22,7 +22,7 @@ const HeaderSize = 3
 const FileNameSize = 2
 const FileContentSize = 4
 
-type FileServerContext struct {
+type ByfrostServerContext struct {
 	State          State
 	FileName       string
 	FileNameLength uint16
@@ -32,8 +32,8 @@ type FileServerContext struct {
 	BufferSize     uint32
 }
 
-func InitFileServerContext() *FileServerContext {
-	return &FileServerContext{
+func InitByfrostServerContext() *ByfrostServerContext {
+	return &ByfrostServerContext{
 		State:          WaitHeader,
 		Buffer:         make([]byte, 0),
 		BufferSize:     0,
@@ -44,7 +44,7 @@ func InitFileServerContext() *FileServerContext {
 	}
 }
 
-func (f *FileServerContext) ResetState() {
+func (f *ByfrostServerContext) ResetState() {
 	f.State = WaitHeader
 	f.FileContent = make([]byte, 0)
 	f.FileSize = 0
@@ -54,7 +54,7 @@ func (f *FileServerContext) ResetState() {
 	f.FileNameLength = 0
 }
 
-func (f *FileServerContext) Process(b byte) (State, error) {
+func (f *ByfrostServerContext) Process(b byte) (State, error) {
 	if f.State == WaitHeader {
 		if f.BufferSize < HeaderSize {
 			f.Buffer = append(f.Buffer, b)

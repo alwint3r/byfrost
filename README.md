@@ -1,8 +1,6 @@
-# FServer
+# Byfrost
 
-Not a very helpful name isn't it?
-
-Basically this is a simple TCP socket server that can be used to transfer a file over the network.
+Basically this is a simple TCP socket server that can be used to transfer a file over the network and store it in a local directory.
 
 ### Protocol
 
